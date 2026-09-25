@@ -25,8 +25,8 @@ HTTP por IP LAN no está permitido; para conexión LAN utilizar HTTPS.
 
 ## Producción y firma
 
-**`env/prod.json` contiene `https://api.example.com` como marcador. Sustituirlo
-por la URL real antes de compilar para distribución. No contiene secretos.**
+`env/prod.json` apunta a la API de producción `https://todoapp.juliens.dev`.
+No contiene secretos.
 
 Configurar un keystore propio y copiar `android/key.properties.example` a
 `android/key.properties`, rellenándolo localmente. Nunca versionar keystore,
@@ -40,6 +40,32 @@ flutter build apk --release --dart-define-from-file=env/prod.json
 La compilación release exige `key.properties` y nunca usa la clave debug como
 fallback. La app rechaza HTTP en release al arrancar. APK de salida:
 `build/app/outputs/flutter-apk/app-release.apk`.
+
+## APK automático en releases
+
+El workflow [release-apk.yml](.github/workflows/release-apk.yml) se ejecuta al
+publicar un release en GitHub: corre análisis y tests, compila el APK firmado con
+`env/prod.json` y lo adjunta al release como `todoapp-<tag>.apk`. El tag define
+`versionName` (`v1.2.0` → `1.2.0`) y el número de ejecución define `versionCode`.
+También puede lanzarse a mano desde la pestaña Actions (el APK queda como
+artefacto del run).
+
+Secrets necesarios (Settings → Secrets and variables → Actions), creados una vez
+con el mismo keystore que se usa localmente:
+
+```powershell
+$gh = "C:\Program Files\GitHub CLI\gh.exe"
+[Convert]::ToBase64String([IO.File]::ReadAllBytes("C:\secure\todoapp-upload.jks")) | & $gh secret set KEYSTORE_BASE64
+& $gh secret set KEYSTORE_PASSWORD   # pide el valor por consola
+& $gh secret set KEY_PASSWORD
+& $gh secret set KEY_ALIAS --body upload
+```
+
+Publicar una versión:
+
+```powershell
+& $gh release create v1.0.0 --title "v1.0.0" --generate-notes
+```
 
 ## iOS
 
