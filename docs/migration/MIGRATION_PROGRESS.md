@@ -1,17 +1,22 @@
 # Avances de la migración Flutter
 
-Última actualización: **2026-09-24**.
+Última actualización: **2026-09-25**.
 
 ## Estado para retomar
 
-La implementación principal está escrita y el proyecto ya produjo un APK debug.
-**No declarar cerrada la migración completa:** faltan la validación contra Django
-real, la comprobación física de cámara/GPS, la equivalencia exhaustiva con la suite
-RN y la distribución firmada. El backend local no respondió en puerto 8080.
+La implementación principal está escrita, versionada en GitHub y distribuida:
+el release **v1.0.0** incluye un APK firmado que apunta a producción.
+**No declarar cerrada la migración completa:** faltan la validación funcional
+contra Django real, la comprobación física de cámara/GPS, la equivalencia
+exhaustiva con la suite RN y la compilación iOS.
 
-Referencia de alcance: [PLAN_MIGRACION_FLUTTER.md](PLAN_MIGRACION_FLUTTER.md).
-Aplicación original: `../todoapp`. No se modificó ese proyecto.
-Historial de trabajo: [docs/HISTORIAL_MIGRACION.md](docs/HISTORIAL_MIGRACION.md).
+- Repositorio: https://github.com/jhurtadojerves/todoapp-flutter (público, rama `main`).
+- Release: https://github.com/jhurtadojerves/todoapp-flutter/releases/tag/v1.0.0
+
+Referencia de alcance: [MIGRATION_PLAN.md](MIGRATION_PLAN.md).
+Aplicación original: `../todoapp` (relativo a la raíz del proyecto Flutter). No se modificó ese proyecto.
+Historial de trabajo: [MIGRATION_HISTORY.md](MIGRATION_HISTORY.md).
+Guía de pruebas: [docs/TESTING_GUIDE.md](../TESTING_GUIDE.md).
 
 ## Implementado
 
@@ -28,8 +33,8 @@ Historial de trabajo: [docs/HISTORIAL_MIGRACION.md](docs/HISTORIAL_MIGRACION.md)
 | Comentarios | Listado paginado y CRUD; edición/eliminación para autor u owner. |
 | Adjuntos | Cámara/GPS mediante interfaces sustituibles; permisos denegados/bloqueados; enlaces a ajustes; copia de fotos e índice local. |
 | Estado | AsyncNotifier para sesión/listas/adjuntos; Notifiers generados para AuthForm, BoardForm y TaskForm. |
-| Pruebas/CI | Unitarias, contratos, pipelines de recursos, widgets e integración nativa; Maestro adaptado; workflow de análisis/formato/tests. |
-| Distribución | Firma release por key.properties, sin fallback debug; BUILD_APK.md y ejemplo de configuración. |
+| Pruebas/CI | Unitarias, contratos, pipelines de recursos, widgets e integración nativa; Maestro adaptado; workflow `flutter.yml` (formato/análisis/tests/cobertura) en push a `main` y pull requests. |
+| Distribución | Firma release por key.properties, sin fallback debug. Workflow `release-apk.yml`: al publicar un release compila el APK firmado con `env/prod.json` y lo adjunta al release. Firma en GitHub Secrets. |
 
 Las mutaciones invalidan listas, detalles y opciones relacionadas. La paginación
 conserva elementos ante fallos de “Cargar más” y descarta respuestas anteriores
@@ -49,17 +54,35 @@ a una recarga. Las escrituras de sesión y adjuntos están serializadas.
   emulador `Medium_Phone_API_36.1`: Home, Boards protegido, registro y regreso.
 - Al intentar repetir esa prueba tras las últimas refactorizaciones, el emulador
   ya no estaba conectado. Esa última repetición **no se ejecutó**.
-- Maestro **no ejecutado**. El workflow CI está escrito, pero **no ejecutado en GitHub**.
+- Maestro **no ejecutado**.
 - iOS **no compilado**: requiere macOS.
+
+### Verificaciones del 2026-09-25
+
+- `flutter test` local: **144 pruebas aprobadas**.
+- CI `flutter.yml` en GitHub Actions: **aprobado** (formato, análisis, tests, cobertura).
+- API de producción `https://todoapp.juliens.dev/api/v1/`: responde; un login
+  con credenciales falsas devuelve el 401 de Django esperado. No se probaron
+  flujos autenticados.
+- `flutter build apk --release --dart-define-from-file=env/prod.json` local:
+  **correcto**; `apksigner` confirma firma `CN=Julio Hurtado, O=TodoApp`.
+  Requirió añadir `includeSubdomains="false"` en `network_security_config.xml`
+  (lint fatal de release).
+- Workflow `release-apk.yml` con el release v1.0.0: **aprobado** (~6 min);
+  `todoapp-v1.0.0.apk` (52 MB) adjunto al release. El APK **no se instaló ni
+  probó** todavía en un dispositivo.
 
 **Importante:** integration_test sobrescribe app-debug.apk con su runner.
 La última compilación registrada arriba ya restableció el APK normal de la app.
 
 ## Próximos pasos concretos
 
-1. Confirmar/iniciar Django de pruebas y su URL. `env/dev.json` usa
-   `http://10.0.2.2:8080`. La comprobación al host `127.0.0.1:8080` falló.
-2. Conectar emulador/teléfono y repetir smoke nativo con el código final.
+1. Confirmar Django de pruebas y su URL. `env/dev.json` usa
+   `http://10.0.2.2:8080`; la comprobación a `127.0.0.1:8080` falló. Producción
+   (`https://todoapp.juliens.dev`) responde, pero Maestro crea y borra datos:
+   **no ejecutarlo contra producción** sin una cuenta dedicada.
+2. Conectar emulador/teléfono, repetir smoke nativo con el código final e
+   instalar `todoapp-v1.0.0.apk` del release para probarlo contra producción.
 3. Ejecutar el flujo real de registro/login, restauración tras reinicio,
    refresh por access vencido y CRUD completo con una cuenta de pruebas.
 4. Ejecutar Maestro; comprobar permisos reales de cámara y GPS, ajustes,
@@ -69,9 +92,10 @@ La última compilación registrada arriba ya restableció el APK normal de la ap
    uno a uno de los 53 archivos de domain/data ni una equivalencia demostrada
    de las 411 pruebas**. Faltan más escenarios de edición, permisos por rol,
    reintentos y recuperación de errores a nivel de pantalla.
-6. Configurar URL HTTPS real de producción y firma local; compilar release.
-   `env/prod.json` contiene **https://api.example.com**, solo un marcador.
-7. Compilar/verificar iOS en macOS y ejecutar CI cuando el proyecto se versione.
+6. Compilar/verificar iOS en macOS.
+
+Resuelto el 2026-09-25: URL de producción en `env/prod.json`, firma local y en
+CI, compilación release, versionado en GitHub y ejecución del CI.
 
 ## Decisiones que debe conocer quien continúe
 
@@ -90,10 +114,22 @@ La última compilación registrada arriba ya restableció el APK normal de la ap
   impedir deadlocks. Se reutiliza el token renovado por peticiones anteriores.
 - HTTP solo para 10.0.2.2, localhost y 127.0.0.1 en desarrollo. En un teléfono
   USB usar `adb reverse` + loopback; una IP LAN HTTP queda rechazada.
-- No se inicializó Git ni se hicieron commits. No hay cambios en repositorios vecinos.
+- Proyecto versionado en https://github.com/jhurtadojerves/todoapp-flutter.
+  No hay cambios en repositorios vecinos.
 - El usuario autorizó crear/editar archivos e instalar dependencias aquí.
   Flutter requirió acceso ampliado a su caché externa (`C:/Users/USER/flutter`).
-- No hay URL productiva, credenciales de pruebas ni keystore incluidos.
+- `env/prod.json` (`https://todoapp.juliens.dev`) vive en el repositorio: no es
+  secreto, porque todo `--dart-define` queda embebido en el APK.
+- Firma: keystore en `C:\secure\todoapp-upload.jks` (alias `upload`) y
+  contraseña en `C:\secure\todoapp-upload-credenciales.txt`, fuera del repositorio;
+  `android/key.properties` local está ignorado por Git. En GitHub Secrets:
+  `KEYSTORE_BASE64`, `KEYSTORE_PASSWORD`, `KEY_PASSWORD`, `KEY_ALIAS`.
+  **Perder la clave impide publicar actualizaciones del paquete.**
+- Versionado de releases: el tag `vX.Y.Z` define `versionName`; el número de
+  ejecución del workflow define `versionCode`.
+- `flutter.yml` se dispara solo en push a `main` y en pull requests (no en tags),
+  para no duplicar la validación al crear un release.
+- No hay credenciales de pruebas incluidas.
 
 ## Comandos de continuidad
 
@@ -107,9 +143,11 @@ flutter emulators
 flutter run --dart-define-from-file=env/dev.json
 flutter test integration_test/smoke_test.dart -d emulator-5554 --dart-define-from-file=env/dev.json
 flutter build apk --debug --dart-define-from-file=env/dev.json
+flutter build apk --release --dart-define-from-file=env/prod.json
+gh release create vX.Y.Z --title "vX.Y.Z" --generate-notes   # dispara el APK en CI
 ```
 
-Ver [BUILD_APK.md](BUILD_APK.md) para firma, dispositivos e iOS.
+Ver [BUILD_APK.md](../../BUILD_APK.md) para firma, dispositivos e iOS.
 Actualizar este documento tras cada bloque de trabajo y verificación.
 
 

@@ -1,5 +1,9 @@
 name: Flutter
-on: [push, pull_request]
+# Tags are excluded: a release pushes its tag, and release-apk.yml already runs the tests.
+on:
+  push:
+    branches: [main]
+  pull_request:
 jobs:
   verify:
     runs-on: ubuntu-latest

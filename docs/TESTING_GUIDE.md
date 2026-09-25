@@ -244,7 +244,7 @@ maestro test --include-tags=auth -e E2E_EMAIL=cuenta-de-pruebas -e E2E_PASSWORD=
 Antes de cualquier test, el código se valida con el formateador y el analizador
 (reglas de [analysis_options.yaml](../analysis_options.yaml)). El pipeline de
 GitHub Actions ([flutter.yml](../.github/workflows/flutter.yml)) ejecuta en cada
-push y pull request exactamente esta secuencia:
+push a `main` y en cada pull request exactamente esta secuencia:
 
 ```powershell
 flutter pub get
@@ -322,7 +322,7 @@ desde el emulador Android.
 - El [AuthInterceptor](../lib/core/network/auth_interceptor.dart) renueva el
   token y cierra la sesión si el refresh falla.
 - La UI muestra errores con opción de **Reintentar** (sección 4).
-- CI publica el reporte de cobertura en cada push.
+- CI publica el reporte de cobertura en cada push a `main`.
 
 **Lo que aún no tiene el proyecto** (posibles mejoras para discutir en clase):
 

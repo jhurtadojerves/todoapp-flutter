@@ -4,7 +4,7 @@
 
 ## Objetivo y referencias
 
-Ejecutar `PLAN_MIGRACION_FLUTTER.md`. La aplicación original está en
+Ejecutar `MIGRATION_PLAN.md`. La aplicación original está en
 `../todoapp` (React Native/Expo); usar sus modelos, datasources, textos y pruebas
 como referencia. No modificar ese proyecto durante la migración.
 
@@ -154,3 +154,18 @@ viewmodels para cerrar la correspondencia arquitectónica completa del plan.
   quedan pendientes de la nueva corrida de análisis/tests tras extraerlos.
 - Se configuró el esquema de deep links `todoapp:///board/ID` en Android/iOS.
 - Pruebas de modelos y formularios añadidas, pendientes de ejecutar en este punto.
+
+## Actualización 2026-09-25: versionado, CI y distribución
+
+- Proyecto versionado y publicado en https://github.com/jhurtadojerves/todoapp-flutter
+  (público, rama `main`). CI `flutter.yml` ejecutado en GitHub: aprobado.
+- `env/prod.json` apunta a `https://todoapp.juliens.dev`; la API responde.
+- Keystore de firma generado fuera del repositorio; secrets de firma en GitHub.
+- Build release local correcto tras añadir `includeSubdomains="false"` en
+  `network_security_config.xml` (lint fatal de release).
+- Nuevo workflow `release-apk.yml`: al publicar un release compila, firma y
+  adjunta el APK. Release v1.0.0 creado; `todoapp-v1.0.0.apk` adjunto.
+- `flutter.yml` limitado a push a `main` y pull requests, para no repetirse
+  con el push del tag al crear un release.
+- Guía de pruebas para la clase en `docs/TESTING_GUIDE.md`.
+- Documentos de migración movidos a `docs/migration/`.

@@ -12,7 +12,7 @@ maestro test -e E2E_EMAIL=cuenta-de-pruebas -e E2E_PASSWORD=clave-de-pruebas .ma
 - `03-logout.yaml`: comprueba que las pestañas vuelven a pedir login.
 
 No guardar credenciales en los YAML. Estos flujos se adaptaron desde la app RN;
-consultar `../AVANCES_MIGRACION.md` para conocer cuáles se han ejecutado realmente.
+consultar `../docs/migration/MIGRATION_PROGRESS.md` para conocer cuáles se han ejecutado realmente.
 
 Prueba nativa sin backend:
 
