@@ -224,15 +224,20 @@ cercana a producción de la app conectada. Ver también [.maestro/README.md](../
 **Requisitos:** Maestro CLI instalado, emulador encendido, APK instalado
 (ver [BUILD_APK.md](../BUILD_APK.md)), backend accesible y una cuenta de pruebas.
 
+> **Credenciales de ejemplo:** `test+e2e@example.com` / `Violeta-Nube#482` es una
+> cuenta de pruebas **del backend local de desarrollo** (`http://10.0.2.2:8080`)
+> y solo debe usarse ahí. Si usas otro backend, crea tu propia cuenta de pruebas
+> y sustituye los valores.
+
 ```powershell
 # Todos los flujos
-maestro test -e E2E_EMAIL=cuenta-de-pruebas -e E2E_PASSWORD=clave-de-pruebas .maestro/flows
+maestro test -e E2E_EMAIL=test+e2e@example.com -e E2E_PASSWORD='Violeta-Nube#482' .maestro/flows
 
-# Un solo flujo
-maestro test -e E2E_EMAIL=cuenta-de-pruebas -e E2E_PASSWORD=clave-de-pruebas .maestro/flows/02-board-task-lifecycle.yaml
+# Un solo flujo (al pasar un archivo, Maestro muestra cada paso en vivo)
+maestro test -e E2E_EMAIL=test+e2e@example.com -e E2E_PASSWORD='Violeta-Nube#482' .maestro/flows/02-board-task-lifecycle.yaml
 
 # Solo los flujos con la etiqueta "auth"
-maestro test --include-tags=auth -e E2E_EMAIL=cuenta-de-pruebas -e E2E_PASSWORD=clave-de-pruebas .maestro/flows
+maestro test --include-tags=auth -e E2E_EMAIL=test+e2e@example.com -e E2E_PASSWORD='Violeta-Nube#482' .maestro/flows
 ```
 
 > Las credenciales se pasan con `-e`; nunca se escriben en los YAML.
@@ -255,13 +260,35 @@ flutter test --coverage                                                  # tests
 ```
 
 La cobertura queda en `coverage/lcov.info` y CI la publica como artefacto
-`coverage`. Para verla en HTML (requiere `lcov` instalado, p. ej. en WSL o con
-Chocolatey):
+`coverage`. Para verla en HTML hace falta `genhtml`, que es parte de **lcov**.
+No viene con Flutter ni existe como comando en Windows. En Linux/macOS se instala
+con el gestor de paquetes (`apt install lcov`, `brew install lcov`). En Windows
+se puede usar el Perl que trae Git para Windows con lcov 1.16, que solo depende
+de módulos estándar de Perl:
 
 ```powershell
-genhtml coverage/lcov.info -o coverage/html
+# Una sola vez: descargar lcov 1.16 en la carpeta de herramientas del usuario
+$lcov = "$env:LOCALAPPDATA\lcov"
+New-Item -ItemType Directory -Force $lcov | Out-Null
+curl.exe -sL -o "$lcov\lcov.tar.gz" https://github.com/linux-test-project/lcov/releases/download/v1.16/lcov-1.16.tar.gz
+tar -xzf "$lcov\lcov.tar.gz" -C $lcov
+
+# Cada vez: quitar el código generado y generar el HTML.
+# genhtml usa perl y mkdir de Unix, que están en la carpeta usr\bin de Git.
+$env:PATH = "C:\Program Files\Git\usr\bin;$env:PATH"
+$bin = "$env:LOCALAPPDATA\lcov\lcov-1.16\bin"
+flutter test --coverage
+perl "$bin\lcov" --remove coverage/lcov.info '*.g.dart' '*.freezed.dart' -o coverage/lcov_filtered.info
+perl "$bin\genhtml" coverage/lcov_filtered.info -o coverage/html
 start coverage/html/index.html
 ```
+
+Desde Git Bash no hace falta tocar el PATH:
+`perl "$LOCALAPPDATA/lcov/lcov-1.16/bin/genhtml" coverage/lcov_filtered.info -o coverage/html`.
+
+Sin el filtro, el porcentaje incluye los archivos que generan Freezed,
+json_serializable y Riverpod. Con el filtro, la cobertura actual es
+**68,1 % de líneas (1179/1732)**.
 
 ---
 
