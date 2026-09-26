@@ -7,7 +7,7 @@ Aplicación móvil para gestionar tareas en equipo: tableros con miembros, estad
 sprints, tareas, comentarios y fotos de evidencia con ubicación. Se conecta a una
 API REST en Django protegida con JWT. Es la migración a Flutter de una app
 React Native/Expo. Android es la plataforma principal; iOS está configurado, pero
-requiere macOS para compilar.
+requiere macOS para compilar..
 
 **Descargar:** el APK firmado de cada versión está en
 [Releases](https://github.com/jhurtadojerves/todoapp-flutter/releases/latest).
