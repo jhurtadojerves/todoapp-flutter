@@ -7,6 +7,11 @@ El appId ya está adaptado a `com.jhurtadojerves.todoapp_flutter`.
 maestro test -e E2E_EMAIL=cuenta-de-pruebas -e E2E_PASSWORD=clave-de-pruebas .maestro/flows
 ```
 
+Cada paso tiene un `label` con una descripción legible, que es lo que se ve en
+la consola. Maestro no reemplaza variables dentro de `label`. Los textos de la
+app se buscan con expresiones regulares completas: las pestañas y tarjetas de
+Flutter agrupan varias líneas, por eso se usan selectores como `"Users.*"`.
+
 - `01-login-invalid.yaml`: muestra el error de credenciales de Django.
 - `02-board-task-lifecycle.yaml`: crea y elimina un tablero y una tarea.
 - `03-logout.yaml`: comprueba que las pestañas vuelven a pedir login.

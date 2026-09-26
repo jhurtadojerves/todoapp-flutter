@@ -6,16 +6,34 @@ tags:
 ---
 - launchApp:
     clearState: true
-- tapOn: "Users"
-- tapOn: "Correo electrónico"
-- inputText: "no-existe@example.com"
-- tapOn: "Contraseña"
-- inputText: "contraseña-incorrecta"
-- hideKeyboard
-- tapOn: "Acceder"
+    label: "Abrir la app sin datos previos"
+- tapOn:
+    text: "Users.*"
+    label: "Ir a la pestaña Users (pide iniciar sesión)"
+- tapOn:
+    text: "Correo electrónico"
+    label: "Seleccionar el campo de correo"
+- inputText:
+    text: "no-existe@example.com"
+    label: "Escribir un correo que no existe"
+- tapOn:
+    text: "Contraseña"
+    label: "Seleccionar el campo de contraseña"
+- inputText:
+    text: "contraseña-incorrecta"
+    label: "Escribir una contraseña incorrecta"
+- hideKeyboard:
+    label: "Ocultar el teclado"
+- tapOn:
+    text: "Acceder"
+    label: "Pulsar Acceder"
 - extendedWaitUntil:
     visible: "No active account found.*"
     timeout: 15000
-- assertVisible: "Acceder"
-- assertNotVisible: "Listado de usuarios"
-
+    label: "Esperar el error de credenciales que devuelve Django"
+- assertVisible:
+    text: "Acceder"
+    label: "Comprobar que sigue en el formulario de login"
+- assertNotVisible:
+    text: "Listado de usuarios"
+    label: "Comprobar que NO entró a la app"

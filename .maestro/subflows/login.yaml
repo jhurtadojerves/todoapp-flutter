@@ -4,14 +4,28 @@ appId: com.jhurtadojerves.todoapp_flutter
 ---
 - launchApp:
     clearState: true
-- tapOn: "Users"
-- tapOn: "Correo electrónico"
-- inputText: ${E2E_EMAIL}
-- tapOn: "Contraseña"
-- inputText: ${E2E_PASSWORD}
-- hideKeyboard
-- tapOn: "Acceder"
+    label: "Login › Abrir la app sin datos previos"
+- tapOn:
+    text: "Users.*"
+    label: "Login › Ir a la pestaña Users (pide iniciar sesión)"
+- tapOn:
+    text: "Correo electrónico"
+    label: "Login › Seleccionar el campo de correo"
+- inputText:
+    text: ${E2E_EMAIL}
+    label: "Login › Escribir el correo de la cuenta de pruebas"
+- tapOn:
+    text: "Contraseña"
+    label: "Login › Seleccionar el campo de contraseña"
+- inputText:
+    text: ${E2E_PASSWORD}
+    label: "Login › Escribir la contraseña (oculta)"
+- hideKeyboard:
+    label: "Login › Ocultar el teclado"
+- tapOn:
+    text: "Acceder"
+    label: "Login › Pulsar Acceder"
 - extendedWaitUntil:
     visible: "Listado de usuarios"
     timeout: 15000
-
+    label: "Login › Esperar el listado de usuarios (sesión iniciada)"

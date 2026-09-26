@@ -6,65 +6,125 @@ tags:
   - boards
   - tasks
 ---
-- evalScript: ${output.boardName = 'E2E tablero ' + Date.now()}
-- evalScript: ${output.taskTitle = 'E2E tarea ' + Date.now()}
+- evalScript:
+    script: ${output.boardName = 'E2E tablero ' + Date.now()}
+    label: "Generar un nombre único para el tablero"
+- evalScript:
+    script: ${output.taskTitle = 'E2E tarea ' + Date.now()}
+    label: "Generar un título único para la tarea"
 
-- runFlow: ../subflows/login.yaml
+- runFlow:
+    file: ../subflows/login.yaml
+    label: "Iniciar sesión con la cuenta de pruebas"
 
 # --- Create the board ---
-- tapOn: "Boards"
+- tapOn:
+    text: "Boards.*"
+    label: "Tablero › Ir a la pestaña Boards"
 - extendedWaitUntil:
     visible: "Mis tableros"
     timeout: 10000
-- tapOn: "Nuevo"
-- tapOn: "Nombre"
-- inputText: ${output.boardName}
-- tapOn: "Descripción"
-- inputText: "Creado por Maestro"
-- hideKeyboard
-- tapOn: "Crear tablero"
+    label: "Tablero › Esperar la lista Mis tableros"
+- tapOn:
+    text: "Nuevo"
+    label: "Tablero › Pulsar Nuevo"
+- tapOn:
+    text: "Nombre"
+    label: "Tablero › Seleccionar el campo Nombre"
+- inputText:
+    text: ${output.boardName}
+    label: "Tablero › Escribir el nombre único generado"
+- tapOn:
+    text: "Descripción"
+    label: "Tablero › Seleccionar el campo Descripción"
+- inputText:
+    text: "Creado por Maestro"
+    label: "Tablero › Escribir la descripción"
+- hideKeyboard:
+    label: "Tablero › Ocultar el teclado"
+- tapOn:
+    text: "Crear tablero"
+    label: "Tablero › Pulsar Crear tablero"
 - extendedWaitUntil:
-    visible: ${output.boardName}
+    visible: "${output.boardName}.*"
     timeout: 10000
+    label: "Tablero › Comprobar que aparece en la lista"
 
 # --- Create a task inside it ---
-- tapOn: ${output.boardName}
-- tapOn: "Ver tareas"
+- tapOn:
+    text: "${output.boardName}.*"
+    label: "Tarea › Abrir el tablero recién creado"
+- tapOn:
+    text: "Ver tareas"
+    label: "Tarea › Pulsar Ver tareas"
 - extendedWaitUntil:
     visible: "Todas las tareas de este tablero."
     timeout: 10000
-- tapOn: "Nueva"
-- tapOn: "Título"
-- inputText: ${output.taskTitle}
-- hideKeyboard
-- tapOn: "Crear tarea"
+    label: "Tarea › Esperar la lista de tareas del tablero"
+- tapOn:
+    text: "Nueva"
+    label: "Tarea › Pulsar Nueva"
+- tapOn:
+    text: "Título"
+    label: "Tarea › Seleccionar el campo Título"
+- inputText:
+    text: ${output.taskTitle}
+    label: "Tarea › Escribir el título único generado"
+- hideKeyboard:
+    label: "Tarea › Ocultar el teclado"
+- tapOn:
+    text: "Crear tarea"
+    label: "Tarea › Pulsar Crear tarea"
 - extendedWaitUntil:
-    visible: ${output.taskTitle}
+    visible: "${output.taskTitle}.*"
     timeout: 10000
+    label: "Tarea › Comprobar que aparece en la lista"
 
 # --- Open and delete the task ---
-- tapOn: ${output.taskTitle}
+- tapOn:
+    text: "${output.taskTitle}.*"
+    label: "Borrar tarea › Abrir el detalle de la tarea"
 - scrollUntilVisible:
     element: "Eliminar tarea"
     direction: DOWN
-- tapOn: "Eliminar tarea"
-- tapOn: "(?i)eliminar"
+    label: "Borrar tarea › Desplazarse hasta Eliminar tarea"
+- tapOn:
+    text: "Eliminar tarea"
+    label: "Borrar tarea › Pulsar Eliminar tarea"
+- tapOn:
+    text: "(?i)eliminar"
+    label: "Borrar tarea › Confirmar en el diálogo"
 - extendedWaitUntil:
     visible: "Todas las tareas de este tablero."
     timeout: 10000
-- assertNotVisible: ${output.taskTitle}
+    label: "Borrar tarea › Esperar a volver a la lista"
+- assertNotVisible:
+    text: "${output.taskTitle}.*"
+    label: "Borrar tarea › Comprobar que ya no aparece"
 
 # --- Clean up: delete the board (session persists across relaunch) ---
-- launchApp
-- tapOn: "Boards"
-- tapOn: ${output.boardName}
+- launchApp:
+    label: "Borrar tablero › Reabrir la app (la sesión debe mantenerse)"
+- tapOn:
+    text: "Boards.*"
+    label: "Borrar tablero › Ir a la pestaña Boards"
+- tapOn:
+    text: "${output.boardName}.*"
+    label: "Borrar tablero › Abrir el tablero"
 - scrollUntilVisible:
     element: "Eliminar tablero"
     direction: DOWN
-- tapOn: "Eliminar tablero"
-- tapOn: "(?i)eliminar"
+    label: "Borrar tablero › Desplazarse hasta Eliminar tablero"
+- tapOn:
+    text: "Eliminar tablero"
+    label: "Borrar tablero › Pulsar Eliminar tablero"
+- tapOn:
+    text: "(?i)eliminar"
+    label: "Borrar tablero › Confirmar en el diálogo"
 - extendedWaitUntil:
     visible: "Mis tableros"
     timeout: 10000
-- assertNotVisible: ${output.boardName}
-
+    label: "Borrar tablero › Esperar a volver a Mis tableros"
+- assertNotVisible:
+    text: "${output.boardName}.*"
+    label: "Borrar tablero › Comprobar que ya no aparece"

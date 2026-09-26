@@ -4,11 +4,24 @@ name: Cerrar sesión
 tags:
   - auth
 ---
-- runFlow: ../subflows/login.yaml
-- tapOn: "≡"
-- tapOn: "Cerrar sesión"
-- assertVisible: "Bienvenido a TodoApp"
-- tapOn: "Boards"
-- assertVisible: "Acceder"
-- assertNotVisible: "Mis tableros"
-
+- runFlow:
+    file: ../subflows/login.yaml
+    label: "Iniciar sesión con la cuenta de pruebas"
+- tapOn:
+    text: "≡"
+    label: "Abrir el menú de la cabecera"
+- tapOn:
+    text: "Cerrar sesión"
+    label: "Pulsar Cerrar sesión"
+- assertVisible:
+    text: "Bienvenido a TodoApp"
+    label: "Comprobar que volvió a Home"
+- tapOn:
+    text: "Boards.*"
+    label: "Ir a la pestaña Boards"
+- assertVisible:
+    text: "Acceder"
+    label: "Comprobar que Boards vuelve a pedir login"
+- assertNotVisible:
+    text: "Mis tableros"
+    label: "Comprobar que los tableros ya no son visibles"
