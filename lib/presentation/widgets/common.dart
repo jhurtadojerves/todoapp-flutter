@@ -33,8 +33,11 @@ class AppScaffold extends ConsumerWidget {
           tooltip: '≡',
           onSelected: (value) async {
             if (value == 'logout') {
+              // Logout swaps protected screens for AuthGate, unmounting this
+              // context, so grab the router before awaiting.
+              final router = GoRouter.of(context);
               await ref.read(sessionProvider.notifier).logout();
-              if (context.mounted) context.go('/home');
+              router.go('/home');
             } else {
               context.go('/boards');
             }

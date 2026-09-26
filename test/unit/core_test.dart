@@ -252,6 +252,29 @@ void main() {
       await expectLater(dio.get('/x'), throwsA(isA<DioException>()));
       expect(logouts, 1);
     });
+    test('401 de petición sin token no refresca ni cierra sesión', () async {
+      final dio = Dio(BaseOptions(baseUrl: 'https://test.example'));
+      final adapter = DioAdapter(dio: dio);
+      var refreshes = 0;
+      var logouts = 0;
+      dio.interceptors.add(
+        AuthInterceptor(
+          dio: dio,
+          accessToken: () => null,
+          refresh: () async {
+            refreshes++;
+            return null;
+          },
+          onUnauthorized: () async {
+            logouts++;
+          },
+        ),
+      );
+      adapter.onGet('/x', (s) => s.reply(401, {}));
+      await expectLater(dio.get('/x'), throwsA(isA<DioException>()));
+      expect(refreshes, 0);
+      expect(logouts, 0);
+    });
     test('login público no refresca', () async {
       final dio = Dio(BaseOptions(baseUrl: 'https://test.example'));
       final adapter = DioAdapter(dio: dio);

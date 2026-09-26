@@ -25,8 +25,11 @@ class AuthInterceptor extends QueuedInterceptor {
   void onError(DioException err, ErrorInterceptorHandler handler) async {
     final error = err;
     final request = error.requestOptions;
+    // A request sent without a token (e.g. a provider rebuilding right after
+    // logout) cannot mean the session expired: no refresh, no logout redirect.
     if (error.response?.statusCode != 401 ||
-        request.extra['authenticated'] == false) {
+        request.extra['authenticated'] == false ||
+        request.headers['Authorization'] == null) {
       handler.next(error);
       return;
     }

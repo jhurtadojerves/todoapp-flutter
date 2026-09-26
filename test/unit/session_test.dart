@@ -1,9 +1,12 @@
 import 'dart:async';
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http_mock_adapter/http_mock_adapter.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:todoapp_flutter/domain/models/models.dart';
 import 'package:todoapp_flutter/domain/repositories/auth_repository.dart';
+import 'package:todoapp_flutter/presentation/providers/dependencies.dart';
 import 'package:todoapp_flutter/presentation/providers/session_provider.dart';
 import '../widget_test.dart' show MemoryTokens;
 
@@ -95,6 +98,23 @@ void main() {
     when(() => auth.refreshToken('refresh')).thenThrow(Exception('Expired'));
     expect(await container.read(sessionProvider.notifier).refresh(), null);
     expect(storage.pair, null);
+  });
+  test('401 con sesión activa avisa sesión expirada', () async {
+    storage.pair = (access: 'access', refresh: 'refresh');
+    await container.read(sessionProvider.future);
+    when(() => auth.refreshToken('refresh')).thenThrow(Exception('Expired'));
+    final dio = container.read(apiClientProvider);
+    DioAdapter(dio: dio).onGet('/x', (s) => s.reply(401, {}));
+    await expectLater(dio.get('/x'), throwsA(isA<DioException>()));
+    expect(container.read(sessionExpiredProvider), 1);
+    expect(storage.pair, null);
+  });
+  test('401 tras logout no avisa sesión expirada', () async {
+    await container.read(sessionProvider.future);
+    final dio = container.read(apiClientProvider);
+    DioAdapter(dio: dio).onGet('/x', (s) => s.reply(401, {}));
+    await expectLater(dio.get('/x'), throwsA(isA<DioException>()));
+    expect(container.read(sessionExpiredProvider), 0);
   });
   test('refresh tardío no restaura sesión cerrada', () async {
     storage.pair = (access: 'access', refresh: 'refresh');

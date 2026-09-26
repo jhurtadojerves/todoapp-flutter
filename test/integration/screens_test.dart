@@ -315,6 +315,33 @@ void main() {
     expect(submitted?['sprint_id'], 4);
     expect(find.text('Tarea con chips'), findsOneWidget);
   });
+  testWidgets('Cerrar sesión desde Users vuelve a Home', (tester) async {
+    adapter.onGet(
+      '/api/v1/users/',
+      (s) => s.reply(
+        200,
+        page([
+          {
+            'id': 1,
+            'username': 'Usuario',
+            'email': 'u@example.com',
+            'profile': null,
+          },
+        ]),
+      ),
+      queryParameters: {'page': 1},
+    );
+    await mount(tester, authenticated: true);
+    await tester.tap(find.text('Users'));
+    await tester.pumpAndSettle();
+    expect(find.text('Listado de usuarios'), findsOneWidget);
+    await tester.tap(find.byTooltip('≡'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Cerrar sesión'));
+    await tester.pumpAndSettle();
+    expect(find.text('Bienvenido a TodoApp'), findsOneWidget);
+    expect(storage.pair, null);
+  });
   testWidgets('Registro espera 500 ms antes de validar contraseña', (
     tester,
   ) async {
