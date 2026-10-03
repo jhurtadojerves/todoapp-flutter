@@ -58,7 +58,7 @@ final class AuthFormProvider
   }
 }
 
-String _$authFormHash() => r'81dc39d6c2453448926d14bcc9a01c8d2af9a60d';
+String _$authFormHash() => r'4b0ce2c2cb92d5451806eb621e166a7691b524f1';
 
 final class AuthFormFamily extends $Family
     with
