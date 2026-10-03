@@ -21,8 +21,16 @@ $P = "C:\practica-release"
 $env:Path += ";C:\Program Files\Android\Android Studio\jbr\bin"   # para keytool
 ```
 
-Si la carpeta ya tiene el clon, salta el paso 0 y entra al proyecto con
-`Set-Location "$P\todoapp-flutter"`.
+**Si la carpeta ya está preparada** (ya tiene `keys\` y el clon), salta el
+paso 0. Abre PowerShell, ejecuta este bloque cambiando solo la primera línea y
+continúa en el [paso 1](#1-crear-la-clave-de-firma-keystore):
+
+```powershell
+$P = "C:\practica-release-prueba"      # o C:\practica-release-paralelo-a / -paralelo-b
+$env:Path += ";C:\Program Files\Android\Android Studio\jbr\bin"
+Set-Location "$P\todoapp-flutter"
+git pull                               # trae la última versión del repositorio
+```
 
 ```
 $P   (p. ej. C:\practica-release\)
