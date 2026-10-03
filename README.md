@@ -102,24 +102,26 @@ los tests más representativos y cubre la depuración.
 ## Compilar la versión de publicación
 
 Requiere configurar la firma una vez: el keystore y `android/key.properties`,
-ambos fuera del control de versiones. El paso a paso está en
-[BUILD_APK.md](BUILD_APK.md).
+ambos fuera del control de versiones. El paso a paso completo, desde crear la
+clave hasta instalar y verificar, está en
+[docs/RELEASE_LOCAL.md](docs/RELEASE_LOCAL.md).
 
 ```powershell
-flutter build apk --release --dart-define-from-file=env/prod.json
-# → build/app/outputs/flutter-apk/app-release.apk
+.\scripts\build-release.ps1
+# → dist/<versión>/todoapp-<versión>.apk   (instalación directa)
+#   dist/<versión>/todoapp-<versión>.aab   (Google Play)
+#   dist/<versión>/symbols/                (para leer trazas ofuscadas)
 ```
 
 Sin `android/key.properties`, el build release falla con un mensaje claro:
-nunca firma con la clave de debug. Para publicar en Google Play se usa
-`flutter build appbundle` en lugar de `apk`.
+nunca firma con la clave de debug.
 
 ## Integración y despliegue continuos
 
 | Workflow | Se ejecuta con | Qué hace |
 |---|---|---|
 | [`flutter.yml`](.github/workflows/flutter.yml) | Push a `main` y pull requests | Formato, análisis, tests y cobertura |
-| [`release-apk.yml`](.github/workflows/release-apk.yml) | Publicar un release | Tests, compilación firmada con `env/prod.json` y APK adjunto al release |
+| [`release-apk.yml`](.github/workflows/release-apk.yml) | Publicar un release | Tests, compilación firmada y ofuscada con `env/prod.json`, APK y AAB adjuntos al release, símbolos como artefacto |
 
 Para publicar una versión nueva:
 
@@ -189,6 +191,7 @@ Todas las rutas cuelgan de `/api/v1/`, se autentican con
 |---|---|
 | [BUILD_APK.md](BUILD_APK.md) | Compilación, dispositivos, firma, releases automáticos e iOS |
 | [docs/TESTING_GUIDE.md](docs/TESTING_GUIDE.md) | Tipos de pruebas, ejemplos, comandos y depuración |
+| [docs/RELEASE_LOCAL.md](docs/RELEASE_LOCAL.md) | Compilación de publicación local: clave, firma, APK, AAB, ofuscación y verificación |
 | [docs/migration/MIGRATION_PROGRESS.md](docs/migration/MIGRATION_PROGRESS.md) | Estado real del proyecto, verificaciones y pendientes |
 | [docs/migration/MIGRATION_PLAN.md](docs/migration/MIGRATION_PLAN.md) | Alcance y criterios de aceptación de la migración |
 | [docs/migration/MIGRATION_HISTORY.md](docs/migration/MIGRATION_HISTORY.md) | Bitácora cronológica del trabajo |

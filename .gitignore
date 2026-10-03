@@ -49,3 +49,6 @@ env/dev-device.json
 android/key.properties
 *.jks
 *.keystore
+
+# Local release outputs (APK, AAB and obfuscation symbols per version)
+/dist/

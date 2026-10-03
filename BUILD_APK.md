@@ -34,18 +34,23 @@ contraseñas ni `key.properties`. Mantener una copia segura de la clave: será
 necesaria para publicar actualizaciones del mismo paquete.
 
 ```powershell
-flutter build apk --release --dart-define-from-file=env/prod.json
+.\scripts\build-release.ps1      # APK + AAB ofuscados y firmados en dist/<versión>/
 ```
 
 La compilación release exige `key.properties` y nunca usa la clave debug como
-fallback. La app rechaza HTTP en release al arrancar. APK de salida:
-`build/app/outputs/flutter-apk/app-release.apk`.
+fallback. La app rechaza HTTP en release al arrancar, y el manifiesto de release
+solo permite HTTPS. El paso a paso completo, con creación de la clave y
+verificación, está en [docs/RELEASE_LOCAL.md](docs/RELEASE_LOCAL.md).
 
-## APK automático en releases
+## APK y AAB automáticos en releases
 
 El workflow [release-apk.yml](.github/workflows/release-apk.yml) se ejecuta al
-publicar un release en GitHub: corre análisis y tests, compila el APK firmado con
-`env/prod.json` y lo adjunta al release como `todoapp-<tag>.apk`. El tag define
+publicar un release en GitHub: corre análisis y tests, compila con `env/prod.json`
+el APK y el AAB firmados y ofuscados, y los adjunta al release como
+`todoapp-<tag>.apk` y `todoapp-<tag>.aab`. Los símbolos de ofuscación quedan
+como artefacto del run (`todoapp-<tag>-symbols`, 90 días). No se adjuntan al
+release público porque deshacen la ofuscación: hay que descargarlos y archivarlos
+por versión. El tag define
 `versionName` (`v1.2.0` → `1.2.0`) y el número de ejecución define `versionCode`.
 También puede lanzarse a mano desde la pestaña Actions (el APK queda como
 artefacto del run).
