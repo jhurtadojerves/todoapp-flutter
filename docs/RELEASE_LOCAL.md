@@ -302,17 +302,51 @@ adb install dist\1.0.0+1\todoapp-1.0.0.apk
 
 ### (Opcional) Probar el AAB sin Play
 
-El AAB no se instala, pero `bundletool` (la herramienta que usa Play) puede
-generar a partir de él los APK que Play entregaría. Pide la contraseña de la
-clave por consola:
+El AAB no se instala directamente. `bundletool`, la herramienta que usa Google
+Play, genera a partir de él **solo los APK que necesita un dispositivo concreto**,
+igual que hace Play al descargar la app. `java` ya está en el `PATH` gracias a la
+línea `$env:Path += ...` del inicio, y `adb` también, con el dispositivo
+conectado.
 
 ```powershell
-# https://github.com/google/bundletool/releases → bundletool-all-<versión>.jar
-java -jar bundletool.jar build-apks --bundle=dist\1.0.0+1\todoapp-1.0.0.aab `
-  --output=build\todoapp.apks `
+# 1. Descargar bundletool (una vez). Fuera del clon, para no ensuciar el repo.
+Invoke-WebRequest -OutFile "$P\bundletool.jar" `
+  https://github.com/google/bundletool/releases/download/1.18.3/bundletool-all-1.18.3.jar
+
+# 2. Generar los APK para el dispositivo conectado (pide la contraseña de la clave)
+java -jar "$P\bundletool.jar" build-apks --bundle=dist\1.0.0+1\todoapp-1.0.0.aab `
+  --output=build\todoapp.apks --connected-device `
   --ks="$P\keys\practica-upload.jks" --ks-key-alias=upload
-java -jar bundletool.jar install-apks --apks=build\todoapp.apks    # dispositivo conectado
+
+# 3. Instalarlos
+java -jar "$P\bundletool.jar" install-apks --apks=build\todoapp.apks
+
+# 4. Ver qué se instaló: no es un APK, son varias piezas
+adb shell pm path com.jhurtadojerves.todoapp_flutter
 ```
+
+El paso 4 muestra algo así:
+
+```
+package:/data/app/.../base.apk
+package:/data/app/.../split_config.en.apk         ← idioma
+package:/data/app/.../split_config.x86_64.apk     ← código nativo de esa arquitectura
+package:/data/app/.../split_config.xxhdpi.apk     ← imágenes de esa densidad
+```
+
+**Para comparar tamaños** en la versión 1.0.1 en un emulador x86_64: el AAB pesa
+47 MB y el APK universal 48 MB, porque incluye todas las arquitecturas. Lo que
+recibe ese dispositivo pesa **19.8 MB**. Para verlo:
+`Get-Item build\todoapp.apks | Select-Object Name, Length`.
+
+- Si en el paso 2 se omite `--ks`, bundletool firma con la clave de **debug**
+  (`~\.android\debug.keystore`). Sirve para probar, pero la firma no coincide con
+  la de ninguna versión firmada que ya esté instalada.
+- Como con el APK, si el dispositivo tiene TodoApp firmada con otra clave,
+  `install-apks` falla. Primero hay que ejecutar
+  `adb uninstall com.jhurtadojerves.todoapp_flutter`.
+- Con `--mode=universal` en lugar de `--connected-device` se genera un único APK
+  que sirve en cualquier dispositivo.
 
 ## 7. Limpiar
 
