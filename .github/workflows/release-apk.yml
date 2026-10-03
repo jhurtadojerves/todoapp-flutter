@@ -1,6 +1,7 @@
-# Builds a signed production APK when a GitHub release is published and attaches
-# it to that release. Signing material comes from repository secrets (see
-# BUILD_APK.md → "APK automático en releases").
+# Builds the signed, obfuscated production APK (direct install) and AAB (Google
+# Play) when a GitHub release is published, attaches both to that release and
+# keeps the obfuscation symbols as a workflow artifact. Signing material comes
+# from repository secrets (see BUILD_APK.md → "APK automático en releases").
 name: Release APK
 on:
   release:
@@ -60,30 +61,52 @@ jobs:
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
           echo "name=${TAG#v}" >> "$GITHUB_OUTPUT"
 
-      - name: Compilar APK
-        run: >
-          flutter build apk --release
-          --dart-define-from-file=env/prod.json
-          --build-name=${{ steps.version.outputs.name }}
-          --build-number=${{ github.run_number }}
-
-      - name: Renombrar APK
-        id: apk
+      # Same flags for both outputs: same version, same obfuscation, one symbols
+      # folder per version (needed to read crash traces from this build).
+      - name: Compilar APK y AAB
         run: |
-          FILE="todoapp-${{ steps.version.outputs.tag }}.apk"
-          mv build/app/outputs/flutter-apk/app-release.apk "$FILE"
-          echo "file=$FILE" >> "$GITHUB_OUTPUT"
+          FLAGS="--release --dart-define-from-file=env/prod.json
+            --build-name=${{ steps.version.outputs.name }}
+            --build-number=${{ github.run_number }}
+            --obfuscate --split-debug-info=build/symbols"
+          flutter build apk $FLAGS
+          flutter build appbundle $FLAGS
+
+      - name: Renombrar artefactos
+        id: out
+        run: |
+          BASE="todoapp-${{ steps.version.outputs.tag }}"
+          mv build/app/outputs/flutter-apk/app-release.apk "$BASE.apk"
+          mv build/app/outputs/bundle/release/app-release.aab "$BASE.aab"
+          echo "apk=$BASE.apk" >> "$GITHUB_OUTPUT"
+          echo "aab=$BASE.aab" >> "$GITHUB_OUTPUT"
+          echo "symbols=$BASE-symbols" >> "$GITHUB_OUTPUT"
 
       - uses: actions/upload-artifact@v5
         with:
           name: apk
-          path: ${{ steps.apk.outputs.file }}
+          path: ${{ steps.out.outputs.apk }}
+
+      - uses: actions/upload-artifact@v5
+        with:
+          name: aab
+          path: ${{ steps.out.outputs.aab }}
+
+      # Not attached to the public release: the symbols undo the obfuscation.
+      # Artifacts expire (90 days max), so download and archive them per version.
+      - uses: actions/upload-artifact@v5
+        with:
+          name: ${{ steps.out.outputs.symbols }}
+          path: build/symbols
+          retention-days: 90
 
       - name: Adjuntar al release
         if: github.event_name == 'release'
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release upload "${{ steps.version.outputs.tag }}" "${{ steps.apk.outputs.file }}" --clobber
+        run: >
+          gh release upload "${{ steps.version.outputs.tag }}"
+          "${{ steps.out.outputs.apk }}" "${{ steps.out.outputs.aab }}" --clobber
 
       - name: Limpiar firma
         if: always()
