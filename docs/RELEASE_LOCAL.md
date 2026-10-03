@@ -5,19 +5,32 @@ y verificados**, generados en tu propio equipo. Es el mismo resultado que produc
 el workflow [`release-apk.yml`](../.github/workflows/release-apk.yml) en GitHub,
 pero sin depender de él.
 
-> **Esta guía trabaja en una carpeta de práctica aislada**, por ejemplo
-> `C:\practica-release\`. Allí se crean un clon nuevo del repositorio, una clave
-> de práctica y su `key.properties`. No toca tu copia de trabajo, tu
+> **Esta guía trabaja en una carpeta de práctica aislada**, al mismo nivel que
+> tu copia de trabajo del proyecto. Allí se crean un clon nuevo del repositorio,
+> una clave de práctica y su `key.properties`. No toca tu copia de trabajo, tu
 > `android/key.properties` ni la clave real de la app. Al terminar se borra la
 > carpeta y no queda nada. Como la clave es de práctica, sus contraseñas se
 > pueden mostrar en pantalla.
 
+```
+todoapp-mobile\                      ← carpeta contenedora
+├── flutter\                         ← tu copia de trabajo (NO se toca)
+├── practica-release-prueba\         ← $P de una práctica
+│   ├── keys\
+│   │   └── practica-upload.jks      ← clave de PRÁCTICA (paso 1)
+│   └── todoapp-flutter\             ← clon nuevo del repositorio (paso 0)
+│       ├── android\key.properties   ← apunta a la clave de práctica (paso 2)
+│       └── dist\<versión>\          ← APK, AAB y símbolos (paso 5)
+├── practica-release-paralelo-a\     ← otra práctica, misma estructura
+└── practica-release-paralelo-b\
+```
+
 **Antes de empezar, en cada ventana de PowerShell nueva**, define la carpeta de
-práctica. Todos los comandos de la guía usan `$P`, así que cada práctica puede
-usar su propia carpeta (por ejemplo `C:\practica-release-paralelo-a`):
+práctica. Todos los comandos de la guía usan `$P`, así que cada práctica tiene
+su propia carpeta:
 
 ```powershell
-$P = "C:\practica-release"
+$P = "$HOME\Projects\todoapp-mobile\practica-release-prueba"
 $env:Path += ";C:\Program Files\Android\Android Studio\jbr\bin"   # para keytool
 ```
 
@@ -26,19 +39,10 @@ paso 0. Abre PowerShell, ejecuta este bloque cambiando solo la primera línea y
 continúa en el [paso 1](#1-crear-la-clave-de-firma-keystore):
 
 ```powershell
-$P = "C:\practica-release-prueba"      # o C:\practica-release-paralelo-a / -paralelo-b
+$P = "$HOME\Projects\todoapp-mobile\practica-release-prueba"   # o -paralelo-a / -paralelo-b
 $env:Path += ";C:\Program Files\Android\Android Studio\jbr\bin"
 Set-Location "$P\todoapp-flutter"
 git pull                               # trae la última versión del repositorio
-```
-
-```
-$P   (p. ej. C:\practica-release\)
-├── keys\
-│   └── practica-upload.jks      ← clave de PRÁCTICA (paso 1)
-└── todoapp-flutter\             ← clon nuevo del repositorio (paso 0)
-    ├── android\key.properties   ← apunta a la clave de práctica (paso 2)
-    └── dist\<versión>\          ← APK, AAB y símbolos (paso 5)
 ```
 
 Todos los comandos son de **PowerShell**.
@@ -149,7 +153,7 @@ guarda. El resultado queda así:
 storePassword=<contraseña del almacén>
 keyPassword=<contraseña de la clave>
 keyAlias=upload
-storeFile=C:/practica-release/keys/practica-upload.jks
+storeFile=C:/Users/<usuario>/Projects/todoapp-mobile/practica-release-prueba/keys/practica-upload.jks
 ```
 
 La ruta de `storeFile` usa `/`. Es la misma estructura que
